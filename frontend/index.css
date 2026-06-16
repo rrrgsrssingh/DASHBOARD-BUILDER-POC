@@ -1,0 +1,104 @@
+
+
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+/*.header{
+   display: flex;
+   justify-content: space-between;
+   border: 1px solid black;
+}
+.logo{
+    width: 200px;
+}
+.Nav-ItemContainer>ul{
+    display: flex;
+    list-style-type: none;
+    font-size: 24px;
+   
+}
+.Nav-ItemContainer>ul>li{
+    margin:10px;
+    padding: 10px;
+}
+.res-card{
+   width:90%;
+    height:100%; 
+   
+    background-color:azure;
+    margin :2px;
+  
+   
+    
+}
+.res-card:hover{
+    border:1px solid black;
+    cursor: pointer;
+}
+.res-logo{
+    width:10px;
+    height:10px;
+    padding:5px;
+
+}
+.res-container{
+    display:flex;
+    flex-wrap: wrap;
+}
+.body{
+    border:1px solid black;
+    padding:20px;
+    margin:auto;
+    flex: 1 1 calc(33.333% -1rem);
+   
+   
+}
+.Search-button{
+    height:50px;
+    width:50px;
+
+}
+.filter-btn{
+    padding: 10px;
+    cursor: pointer;
+    
+}
+.Filter{
+    display:flex;
+}
+.Shimmer-card{
+    margin:20px;
+    width:200px;
+    height:400px;
+    background-color: #f0f0f0;;
+}
+.Shimmer-container{
+    display: flex;
+    flex-wrap: wrap;
+}
+.Login-btn{
+    margin: 0 20px;
+   
+}
+.search{
+    display:flex;
+    flex-wrap: wrap;
+}
+.Menu{
+ overflow-y:auto;
+}
+        
+.dev-info{
+padding: 10px;
+border: 1px solid black;
+
+}
+.user-class{
+margin-top: 5px;
+padding: 10px;
+border: 1px solid black;
+
+}*/
