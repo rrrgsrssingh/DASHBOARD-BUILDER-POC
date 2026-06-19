@@ -1,6 +1,10 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { WidthProvider, Responsive, Layout } from 'react-grid-layout';
 import { DashboardState, WidgetConfig } from '../types';
 import { WidgetRenderer } from './WidgetRegistry';
+
+const ResponsiveGridLayout = WidthProvider(Responsive);
+const LAYOUT_KEY = 'dashboard_layout';
 
 const INITIAL_LAYOUT: WidgetConfig[] = [
   { id: 'w-1', type: 'categorical', title: 'Categorical Breakdown', grid: { x: 0, y: 0, w: 6, h: 4 } },
@@ -10,7 +14,7 @@ const INITIAL_LAYOUT: WidgetConfig[] = [
 ];
 
 export const DashboardShell: React.FC = () => {
-  const savedLayout = localStorage.getItem('dashboard_layout');
+  const savedLayout = localStorage.getItem(LAYOUT_KEY);
   const initialWidgets = savedLayout ? JSON.parse(savedLayout) : INITIAL_LAYOUT;
 
   const [state, setState] = useState<DashboardState>({
@@ -30,8 +34,7 @@ export const DashboardShell: React.FC = () => {
       const response = await fetch('http://localhost:5000/api/widgets/data');
       if (!response.ok) throw new Error('Network execution failure');
       const apiData = await response.json();
-      
-      // Transform list payload mapping cleanly to state dictionary
+
       const dataMap: Record<string, any> = {};
       apiData.forEach((item: any) => {
         dataMap[item.widgetId] = item.data;
@@ -42,6 +45,37 @@ export const DashboardShell: React.FC = () => {
       setState(prev => ({ ...prev, error: err.message, loading: false }));
     }
   };
+
+  const layouts = useMemo(
+    () => ({
+      lg: state.widgets.map((widget) => ({
+        i: widget.id,
+        x: widget.grid.x,
+        y: widget.grid.y,
+        w: widget.grid.w,
+        h: widget.grid.h,
+      })),
+    }),
+    [state.widgets]
+  );
+
+  const handleLayoutChange = useCallback(
+    (currentLayout: Layout[]) => {
+      const updatedWidgets = state.widgets.map((widget) => {
+        const layoutItem = currentLayout.find((item) => item.i === widget.id);
+        return layoutItem
+          ? {
+              ...widget,
+              grid: { x: layoutItem.x, y: layoutItem.y, w: layoutItem.w, h: layoutItem.h },
+            }
+          : widget;
+      });
+
+      localStorage.setItem(LAYOUT_KEY, JSON.stringify(updatedWidgets));
+      setState((prev) => ({ ...prev, widgets: updatedWidgets }));
+    },
+    [state.widgets]
+  );
 
   // Performance Strategy: Prevent unnecessary parent bubble states during micro changes
   const handleResetLayout = useCallback(() => {
@@ -75,26 +109,32 @@ export const DashboardShell: React.FC = () => {
       {state.loading && <div className="text-center py-20 text-indigo-400 animate-pulse">Assembling dynamic pipelines...</div>}
       {state.error && <div className="text-center py-4 text-yellow-500 text-sm">{state.error} - Using cached layout</div>}
 
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+      <ResponsiveGridLayout
+        className="layout"
+        layouts={layouts}
+        breakpoints={{ lg: 1200, md: 960, sm: 640 }}
+        cols={{ lg: 12, md: 10, sm: 6 }}
+        rowHeight={30}
+        width={1200}
+        onLayoutChange={handleLayoutChange}
+        draggableHandle=".widget-handle"
+        margin={[16, 16]}
+        compactType="vertical"
+      >
         {state.widgets.map((widget) => (
-          <div 
-            key={widget.id} 
-            className="md:col-span-6 bg-gray-900/50 border border-gray-800 rounded-xl p-5 hover:border-gray-700 transition duration-200 shadow-xl flex flex-col justify-between"
-          >
-            <div className="mb-4">
-              <span className="text-xs uppercase font-mono tracking-widest text-cyan-500">{widget.type}</span>
-              <h3 className="text-lg font-medium text-gray-200 mt-0.5">{widget.title}</h3>
+          <div key={widget.id} className="bg-gray-900/80 border border-gray-800 rounded-3xl overflow-hidden shadow-xl">
+            <div className="widget-handle cursor-move bg-gray-850 px-4 py-3 border-b border-gray-800 flex justify-between items-center">
+              <div>
+                <span className="text-[11px] uppercase tracking-[0.3em] text-cyan-400">{widget.type}</span>
+                <h3 className="text-sm font-semibold text-gray-100 mt-1">{widget.title}</h3>
+              </div>
             </div>
-            <div className="flex-1 min-h-[150px]">
-              <WidgetRenderer 
-                type={widget.type} 
-                data={state.data[widget.id]} 
-                error={!state.data[widget.id]} 
-              />
+            <div className="p-4 min-h-[180px]">
+              <WidgetRenderer type={widget.type} data={state.data[widget.id]} error={!state.data[widget.id]} />
             </div>
           </div>
         ))}
-      </div>
+      </ResponsiveGridLayout>
     </div>
   );
 };
